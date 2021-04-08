@@ -17,6 +17,29 @@ class Article:
         f.write(r.text)
         f.close()
 
+    def getLastPage(self, html):
+        """ Get Last Page number by any pcdvd page
+        """
+        soup = BeautifulSoup(html, 'html.parser')
+        body = soup.html.body
+        pagenav = body.find_all('div', attrs={'class':'pagenav'})
+        for div in pagenav:
+            # print(div.text)
+            nav_bar = div.table.tr
+            nav_item = nav_bar.find_all('a')
+            # for i in nav_item:
+            #     last_url = i.attrs.get('href')
+            last_url = nav_item[-1].attrs.get('href')
+            # last_url is our last index
+            return self.__getFinalPage(last_url)
+                
+
+    def __getFinalPage(self, url):
+        tokens  = url.split('&')
+        for p in tokens:
+            if 'page=' in p:
+                page_no = int(p[5:])
+                return page_no
 
     def getPostByUser(self, html, lookup_user):
         soup = BeautifulSoup(html, 'html.parser')
@@ -36,7 +59,6 @@ class Article:
 
             if found:
                 print(t)
-                print('=' * 80)
 
 
         
@@ -46,7 +68,11 @@ class Article:
 
 
 if __name__ == '__main__':
+    f = open('t.html')
+    html = f.read()
+    f.close
     # Article().save()
+    Article().getLastPage(html)
     # Article().parse()
     # Article().getArticleByUser('660757', 'ifeven', 1)
-    Article().getArticleByUser('485703', 'macrosstt', 2)
+    # Article().getArticleByUser('485703', 'macrosstt', 261)
