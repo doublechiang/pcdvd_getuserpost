@@ -1,16 +1,20 @@
+<!doctype html>
 <html>
-
-<title>PCDVD Thread Post By User</title>
-<header></header>
+    <header></header>
+    <title>PCDVD User Post by Thread</title>
 <body>
-<h1>PCDVD Thread Post By User</h1>
-<form>
-    <label for="usrname">Username</label> 
-    <input type="text" id="username" name="username">
-    URL: https://www.pcdvd.com.tw/showthread.php?t=&page={}&pp=10
-
+<h1>PCDVD User Post by Thread</h1>
+<form action={{ url_for('getUserPost') }} method='post'>
+    <label for="username">Username</label> 
+    <input type="text" id="username" name="username"><br/>
+    URL: https://www.pcdvd.com.tw/showthread.php?t=<input type="tex" id='thread' name='thread'><br/>
+    <input type="submit" value="submit"></input>
 
 </form>
+<hr class="solid">
+<footer>
+  <p>Project source, issue report, comments please go to <a href="https://github.com/doublechiang/pcdvd_userpost_by_thread">https://github.com/doublechiang/pcdvd_userpost_by_thread</a></p></p>
+</footer>
     
 </body>
 </html>

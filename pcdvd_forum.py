@@ -1,13 +1,28 @@
 import requests
+import logging
 from bs4 import BeautifulSoup
 
-class Article:
-    def getArticleByUser(self, article, user, total):
-        for page in range(1, total):
-            url = "https://www.pcdvd.com.tw/showthread.php?t={}&page={}&pp=10".format(article, page)
+class PcdvdForum:
+
+    def getUserPostByThread(self, thread, user):
+        """ reutrn a list contain html strings
+        """
+        url = "https://www.pcdvd.com.tw/showthread.php?t={}".format(thread)
+        r = requests.get(url)
+        r.encoding = 'big5'
+        lastpage = self.getLastPage(r.text)
+        html_doc = []
+        # html_doc.append('<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=big5">')
+        logging.info("Retrieveing pages from 1 to {}".format(lastpage))
+        for page in range(1, lastpage):
+            if page == 1:
+                html_doc.extend(self.getUserPostByPage(r.text, user))
+
+            url = "https://www.pcdvd.com.tw/showthread.php?t={}&page={}&pp=10".format(thread, page)
             r = requests.get(url)
             r.encoding = 'big5'
-            self.getPostByUser(r.text, user)
+            html_doc.extend(self.getUserPostByPage(r.text, user))
+        return html_doc        
 
 
     def save(self):
@@ -19,32 +34,39 @@ class Article:
 
     def getLastPage(self, html):
         """ Get Last Page number by any pcdvd page
+            At PCDVD,
+            if there is no pagenav, only one page.
+            if there is less, page, there is no '最後' nav anchor
+            then minus 1 is '下一頁' and the minus 2 is the last page.
         """
         soup = BeautifulSoup(html, 'html.parser')
         body = soup.html.body
         pagenav = body.find_all('div', attrs={'class':'pagenav'})
+        page =1
         for div in pagenav:
             # print(div.text)
             nav_bar = div.table.tr
             nav_item = nav_bar.find_all('a')
-            # for i in nav_item:
-            #     last_url = i.attrs.get('href')
-            last_url = nav_item[-1].attrs.get('href')
+            if nav_item[-1].text == '下一頁':
+                last_url = nav_item[-2].attrs.get('href')
+            else:
+                last_url = nav_item[-1].attrs.get('href')
             # last_url is our last index
-            return self.__getFinalPage(last_url)
-                
+            page=  self.__getFinalPageFromUrl(last_url)
+        return page
 
-    def __getFinalPage(self, url):
+    def __getFinalPageFromUrl(self, url):
         tokens  = url.split('&')
         for p in tokens:
             if 'page=' in p:
                 page_no = int(p[5:])
                 return page_no
 
-    def getPostByUser(self, html, lookup_user):
+    def getUserPostByPage(self, html, lookup_user):
         soup = BeautifulSoup(html, 'html.parser')
         body = soup.html.body
         tables = body.find_all('table', attrs={'class': 'tborder'})
+        html_doc =[] 
         para = ""
         for t in tables:
             found = False
@@ -58,21 +80,17 @@ class Article:
                 para = p.text
 
             if found:
-                print(t)
-
-
-        
-
-            
+                html_doc.append(t)
+        return html_doc
 
 
 
 if __name__ == '__main__':
-    f = open('t.html')
-    html = f.read()
-    f.close
+    # f = open('t.html')
+    # html = f.read()
+    # f.close
     # Article().save()
-    Article().getLastPage(html)
     # Article().parse()
     # Article().getArticleByUser('660757', 'ifeven', 1)
     # Article().getArticleByUser('485703', 'macrosstt', 261)
+    PcdvdForum().getUserPostByThread('991318', '慕凡')
