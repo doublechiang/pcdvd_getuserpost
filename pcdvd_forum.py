@@ -1,11 +1,14 @@
 import requests
 import logging
+import string
+from io import BytesIO    
+
 from bs4 import BeautifulSoup
 
 class PcdvdForum:
 
     def getUserPostByThread(self, thread, user):
-        """ reutrn a list contain html strings
+        """ use python generator to stream output, otherwise heroku will have timeout.
         """
         url = "https://www.pcdvd.com.tw/showthread.php?t={}".format(thread)
         r = requests.get(url)
@@ -21,8 +24,8 @@ class PcdvdForum:
             url = "https://www.pcdvd.com.tw/showthread.php?t={}&page={}&pp=10".format(thread, page)
             r = requests.get(url)
             r.encoding = 'big5'
-            html_doc.extend(self.getUserPostByPage(r.text, user))
-        return html_doc        
+            # html_doc.extend(self.getUserPostByPage(r.text, user))
+            yield self.getUserPostByPage(r.text, user)
 
 
     def save(self):
@@ -80,8 +83,17 @@ class PcdvdForum:
                 para = p.text
 
             if found:
-                html_doc.append(t)
-        return html_doc
+                html_doc.append(str(t))
+        # Contents in list
+        # buf = BytesIO()
+        # for p in html_doc:
+        #     buf.write(p.encode('utf-8'))
+        # print(buf.getvalue())
+        # buf.seek(0)
+        # print(html_doc)
+        buf = "".join(html_doc)
+
+        return buf
 
 
 
@@ -90,7 +102,10 @@ if __name__ == '__main__':
     # html = f.read()
     # f.close
     # Article().save()
-    # Article().parse()
     # Article().getArticleByUser('660757', 'ifeven', 1)
     # Article().getArticleByUser('485703', 'macrosstt', 261)
-    PcdvdForum().getUserPostByThread('991318', '慕凡')
+    # Article().parse()
+    p = PcdvdForum()
+    func = p.getUserPostByThread('991318', '慕凡')
+    for html in func:
+        print(html)
