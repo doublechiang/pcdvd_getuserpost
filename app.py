@@ -9,6 +9,16 @@ app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
 
 @app.route('/', methods=['get', 'post'])
+def getAuthorPost():
+    author=thread=None
+    if request.method == 'POST':
+        url=request.form.get('url')
+        logging.info(url)
+        pcdvd = PcdvdForum()
+        author,thread= pcdvd.parseUrl(url)
+    return render_template('main.html', author=author, thread=thread)
+
+@app.route('/getUserPost', methods=['post'])    
 def getUserPost():
     if request.method == 'POST':
         user=request.form.get('username')
@@ -22,6 +32,7 @@ def getUserPost():
         return Response(pcdvd.getUserPostByThread(thread, user))
         
     return render_template('main.html')
+
 
 if __name__ == '__main__':
     app.run(port=5000)

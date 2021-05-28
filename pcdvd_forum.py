@@ -2,10 +2,42 @@ import requests
 import logging
 import string
 from io import BytesIO    
+from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 
 class PcdvdForum:
+
+    def parseUrl(self, url):
+        thread = None
+        o = urlparse(url)
+        q = o.query.split('&')
+        for s in q:
+            print(s)
+            if s.startswith('t='):
+                # Get the thread number string.
+                thread = s[2:]
+
+        # No matter what page index, we get first page only
+        author = self.getAuthor(thread)
+        return author, thread
+
+
+    def getAuthor(self, thread):
+        """ Get the first writer, this is the user
+        """
+        url = "https://www.pcdvd.com.tw/showthread.php?t={}".format(thread)
+        r = requests.get(url)
+        r.encoding = 'big5'
+        soup = BeautifulSoup(r.text, 'html.parser')
+        body = soup.html.body
+        tables = body.find_all('table', attrs={'class': 'tborder'})
+        for t in tables:
+            user = t.find_all('a', attrs={'class': 'bigusername'})
+            for u in user: 
+                return u.text
+        
+
 
     def getUserPostByThread(self, thread, user):
         """ use python generator to stream output, otherwise heroku will have timeout.
@@ -106,6 +138,7 @@ if __name__ == '__main__':
     # Article().getArticleByUser('485703', 'macrosstt', 261)
     # Article().parse()
     p = PcdvdForum()
-    func = p.getUserPostByThread('991318', '慕凡')
-    for html in func:
-        print(html)
+    # func = p.getUserPostByThread('991318', '慕凡')
+    # for html in func:
+    #     print(html)
+    p.parseUrl('https://www.pcdvd.com.tw/showthread.php?t=1186121')
