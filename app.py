@@ -10,13 +10,13 @@ app.logger.setLevel(logging.DEBUG)
 
 @app.route('/', methods=['get', 'post'])
 def getAuthorPost():
-    author=thread=None
+    author=thread=error=None
     if request.method == 'POST':
         url=request.form.get('url')
         logging.info(url)
         pcdvd = PcdvdForum()
-        author,thread= pcdvd.parseUrl(url)
-    return render_template('main.html', author=author, thread=thread)
+        author,thread, error= pcdvd.parseUrl(url)
+    return render_template('main.html', author=author, thread=thread, error=error)
 
 @app.route('/getUserPost', methods=['post'])    
 def getUserPost():

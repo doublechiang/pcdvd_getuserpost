@@ -10,8 +10,11 @@ class PcdvdForum:
     ThreadToken1='t='
     ThreadToken2='threadid='
 
+    error_PARSEURL='無法分析討論串ID或作者ID，請回報作者，謝謝。'
+
     def parseUrl(self, url):
-        thread = None
+        thread = author= None
+        error = None
         o = urlparse(url)
         q = o.query.split('&')
         for s in q:
@@ -23,10 +26,18 @@ class PcdvdForum:
                 thread=s[len(PcdvdForum.ThreadToken2):]
                 break
 
+        if thread is None:
+            logging.info("Can't get thread and user from URL: {}".format(url))
+            error=PcdvdForum.error_PARSEURL
+            return author, thread, error
+
         # No matter what page index, we get first page only
         author = self.getAuthor(thread)
-        logging.info("Get thread {} and author: {}".format(thread, author))
-        return author, thread
+        if author is None:
+            error=PcdvdForum.error_PARSEURL
+        else:
+            logging.info("Get thread {} and author: {}".format(thread, author))
+        return author, thread, error
 
 
     def getAuthor(self, thread):
