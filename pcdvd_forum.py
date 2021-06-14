@@ -7,19 +7,25 @@ from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
 class PcdvdForum:
+    ThreadToken1='t='
+    ThreadToken2='threadid='
 
     def parseUrl(self, url):
         thread = None
         o = urlparse(url)
         q = o.query.split('&')
         for s in q:
-            print(s)
-            if s.startswith('t='):
+            if s.startswith(PcdvdForum.ThreadToken1):
                 # Get the thread number string.
-                thread = s[2:]
+                thread = s[len(PcdvdForum.ThreadToken1):]
+                break
+            if s.startswith(PcdvdForum.ThreadToken2):
+                thread=s[len(PcdvdForum.ThreadToken2):]
+                break
 
         # No matter what page index, we get first page only
         author = self.getAuthor(thread)
+        logging.info("Get thread {} and author: {}".format(thread, author))
         return author, thread
 
 
@@ -130,6 +136,7 @@ class PcdvdForum:
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
     # f = open('t.html')
     # html = f.read()
     # f.close
@@ -142,3 +149,4 @@ if __name__ == '__main__':
     # for html in func:
     #     print(html)
     p.parseUrl('https://www.pcdvd.com.tw/showthread.php?t=1186121')
+    p.parseUrl('https://www.pcdvd.com.tw/showthread.php?s=&threadid=336246&perpage=10&pagenumber=1')
